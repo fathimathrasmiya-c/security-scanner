@@ -1,0 +1,27 @@
+{
+  "scan_time": "2026-04-16T01:44:43.557984",
+  "target_path": ".",
+  "summary": {
+    "total_findings": 1,
+    "confirmed_vulnerabilities": 0,
+    "false_positives": 0,
+    "needs_review": 1
+  },
+  "findings": [
+    {
+      "rule_id": "html.security.audit.missing-integrity.missing-integrity",
+      "message": "This tag is missing an 'integrity' subresource integrity attribute. The 'integrity' attribute allows for the browser to verify that externally hosted files (for example from a CDN) are delivered without unexpected manipulation. Without this attribute, if an attacker can modify the externally hosted resource, this could lead to XSS and other types of attacks. To prevent this, include the base64-encoded cryptographic hash of the resource (file) you\u2019re telling the browser to fetch in the 'integrity' attribute for all externally hosted files.",
+      "file": "src\\web\\templates\\base.html",
+      "line": 0,
+      "severity": "WARNING",
+      "code_snippet": "requires login",
+      "triage": {
+        "decision": "needs_review",
+        "confidence": "low",
+        "explanation": "Triage disabled - manual review required",
+        "exploit_scenario": null,
+        "recommended_action": null
+      }
+    }
+  ]
+}

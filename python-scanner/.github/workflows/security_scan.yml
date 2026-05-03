@@ -1,0 +1,86 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  schedule:
+    # Run weekly on Monday at 9 AM
+    - cron: '0 9 * * 1'
+
+jobs:
+  security-scan:
+    name: AI Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r python-scanner/requirements.txt
+
+      - name: Install Semgrep
+        run: pip install semgrep
+
+      - name: Run AI Security Scan
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          cd python-scanner
+          python -m src.cli scan .. \
+            --format json \
+            --output security_report.json \
+            --fail-on high \
+            --generate-fixes \
+            --verbose
+
+      - name: Upload Security Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-report
+          path: python-scanner/security_report.json
+          retention-days: 30
+
+      - name: Comment PR with Results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            try {
+              const report = JSON.parse(fs.readFileSync('python-scanner/security_report.json', 'utf8'));
+              const summary = report.summary;
+
+              let body = '## AI Security Scan Results\n\n';
+              body += `| Metric | Count |\n`;
+              body += `|--------|-------|\n`;
+              body += `| Total Findings | ${summary.total_findings} |\n`;
+              body += `| Confirmed Vulnerabilities | ${summary.confirmed_vulnerabilities} |\n`;
+              body += `| False Positives | ${summary.false_positives} |\n`;
+              body += `| Needs Review | ${summary.needs_review} |\n`;
+
+              if (summary.confirmed_vulnerabilities > 0) {
+                body += '\n:warning: **Confirmed vulnerabilities found!** Please review and fix.\n';
+              } else {
+                body += '\n:no_entry_sign: No confirmed vulnerabilities.\n';
+              }
+
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            } catch (e) {
+              console.log('Report file not found or invalid');
+            }

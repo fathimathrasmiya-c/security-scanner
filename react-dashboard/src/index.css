@@ -1,0 +1,360 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #0f172a;
+  color: #f1f5f9;
+  line-height: 1.6;
+}
+
+.dashboard {
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.dashboard-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background-color: #6366f1;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #4f46e5;
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: #f1f5f9;
+  border: 1px solid #334155;
+}
+
+.btn-outline:hover {
+  background-color: #1e293b;
+}
+
+/* Summary Cards */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.summary-card {
+  background-color: #1e293b;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+}
+
+.summary-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.summary-icon.total { background-color: rgba(99, 102, 241, 0.2); }
+.summary-icon.high { background-color: rgba(239, 68, 68, 0.2); }
+.summary-icon.medium { background-color: rgba(245, 158, 11, 0.2); }
+.summary-icon.low { background-color: rgba(34, 197, 94, 0.2); }
+
+.summary-content {
+  flex: 1;
+}
+
+.summary-label {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.summary-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.summary-value.total { color: #6366f1; }
+.summary-value.high { color: #f87171; }
+.summary-value.medium { color: #fbbf24; }
+.summary-value.low { color: #4ade80; }
+
+/* Charts Section */
+.charts-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.chart-card {
+  background-color: #1e293b;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #334155;
+}
+
+.chart-card h3 {
+  font-size: 14px;
+  color: #94a3b8;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+/* Filters Section */
+.filters-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.filters-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.filter-label {
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+.filter-select {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  color: #f1f5f9;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.search-input {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  color: #f1f5f9;
+  font-size: 14px;
+  width: 300px;
+}
+
+.search-input::placeholder {
+  color: #64748b;
+}
+
+/* Issues Table */
+.issues-table-container {
+  background-color: #1e293b;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #334155;
+}
+
+.issues-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.issues-table th {
+  padding: 14px 16px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #334155;
+}
+
+.issues-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #334155;
+  font-size: 14px;
+}
+
+.issues-table tbody tr:hover {
+  background-color: #334155;
+}
+
+.issues-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.severity-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.severity-badge.high {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.severity-badge.medium {
+  background-color: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+
+.severity-badge.low {
+  background-color: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+.file-path {
+  font-family: 'Fira Code', monospace;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.rule-id {
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  background-color: #334155;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: #f1f5f9;
+}
+
+.issue-message {
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  background-color: #1e293b;
+  border-radius: 12px;
+  border: 1px solid #334155;
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 24px;
+}
+
+.empty-state h2 {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  color: #94a3b8;
+  margin-bottom: 24px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 16px;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+
+  .issues-table-container {
+    overflow-x: auto;
+  }
+
+  .charts-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Loading Spinner */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #334155;
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* File Input */
+.file-input {
+  display: none;
+}

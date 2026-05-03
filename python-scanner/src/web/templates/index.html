@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <h1>🛡️ Security Scan Dashboard</h1>
+            <p>Analyze and visualize application security vulnerabilities</p>
+        </div>
+        <div class="header-actions">
+            <input type="file" id="scanFile" accept=".json" hidden>
+            <button onclick="document.getElementById('scanFile').click()" class="btn btn-primary">
+                📤 Upload Results
+            </button>
+            <button class="btn btn-outline" onclick="clearScan()">Clear</button>
+        </div>
+    </div>
+
+    {% if scan %}
+    <!-- Header Upgrade -->
+    <div class="dashboard-subtitle">
+        <h1>🛡️ Security Scan Dashboard</h1>
+        <p>Analyze and visualize application security vulnerabilities</p>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="cards-grid">
+        <div class="card card-total">
+            <div class="card-icon">📊</div>
+            <div class="card-content">
+                <span class="card-label">Total Findings</span>
+                <span class="card-value">{{ scan.total_findings }}</span>
+            </div>
+        </div>
+
+        <div class="card card-confirmed">
+            <div class="card-icon">🔴</div>
+            <div class="card-content">
+                <span class="card-label">Confirmed Vulnerabilities</span>
+                <span class="card-value">{{ scan.confirmed_vulnerabilities }}</span>
+            </div>
+        </div>
+
+        <div class="card card-false-positive">
+            <div class="card-icon">🟢</div>
+            <div class="card-content">
+                <span class="card-label">False Positives</span>
+                <span class="card-value">{{ scan.false_positives }}</span>
+            </div>
+        </div>
+
+        <div class="card card-review">
+            <div class="card-icon">🟡</div>
+            <div class="card-content">
+                <span class="card-label">Needs Review</span>
+                <span class="card-value">{{ scan.needs_review }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-grid">
+        <div class="chart-card">
+            <h3>Findings by Severity</h3>
+            <canvas id="severityChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+            <h3>Triage Results</h3>
+            <canvas id="triageChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Findings Table -->
+    <div class="findings-section">
+        <h2>Security Findings</h2>
+        <div class="table-container">
+            <table class="findings-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Severity</th>
+                        <th>Rule ID</th>
+                        <th>File</th>
+                        <th>Line</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for finding in scan.findings %}
+                    <tr class="finding-row severity-{{ finding.finding.severity | lower }}">
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <span class="severity-badge severity-{{ finding.finding.severity | lower }}">
+                                {{ finding.finding.severity }}
+                            </span>
+                        </td>
+                        <td>
+                            <code class="rule-id">{{ finding.finding.rule_id }}</code>
+                        </td>
+                        <td class="file-path">{{ finding.finding.file }}</td>
+                        <td>{{ finding.finding.line }}</td>
+                        <td>
+                            {% if finding.triage %}
+                            <span class="status-badge status-{{ finding.triage.decision.value }}">
+                                {{ finding.triage.decision.value | replace('_', ' ') | title }}
+                            </span>
+                            {% else %}
+                            <span class="status-badge status-pending">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="/findings/{{ loop.index0 }}" class="btn btn-sm">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Scan Info -->
+    <div class="scan-info">
+        <p><strong>Scan Time:</strong> {{ scan.scan_time }}</p>
+        <p><strong>Target:</strong> {{ scan.target_path }}</p>
+    </div>
+
+    {% else %}
+    <!-- Empty State - Professional -->
+    <div class="empty-state">
+        <div class="empty-icon">📂</div>
+        <h2>No Security Reports Available</h2>
+        <p>Upload a scan report (report.json) to analyze vulnerabilities and view insights.</p>
+
+        <div class="upload-section">
+            <p class="upload-info">
+                Supported format: <strong>report.json</strong><br>
+                Generated by your security scanner
+            </p>
+
+            <input type="file" id="scanFileEmpty" accept=".json" hidden>
+
+            <button onclick="document.getElementById('scanFileEmpty').click()" class="btn btn-primary btn-upload">
+                📤 Upload Scan Results
+            </button>
+
+            <p class="smart-tip">
+                💡 Tip: Run your scanner first to generate <strong>report.json</strong>, then upload it here.
+            </p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Initialize charts
+    {% if scan %}
+    const severityData = {
+        labels: ['Critical', 'Error', 'Warning', 'Info'],
+        datasets: [{
+            data: [
+                {{ scan.findings | selectattr('finding.severity', 'equalto', 'CRITICAL') | list | length }},
+                {{ scan.findings | selectattr('finding.severity', 'equalto', 'ERROR') | list | length }},
+                {{ scan.findings | selectattr('finding.severity', 'equalto', 'WARNING') | list | length }},
+                {{ scan.findings | selectattr('finding.severity', 'equalto', 'INFO') | list | length }}
+            ],
+            backgroundColor: ['#dc3545', '#dc3545', '#ffc107', '#17a2b8']
+        }]
+    };
+
+    const triageData = {
+        labels: ['True Positive', 'False Positive', 'Needs Review'],
+        datasets: [{
+            data: [
+                {{ scan.confirmed_vulnerabilities }},
+                {{ scan.false_positives }},
+                {{ scan.needs_review }}
+            ],
+            backgroundColor: ['#dc3545', '#28a745', '#ffc107']
+        }]
+    };
+
+    new Chart(document.getElementById('severityChart'), {
+        type: 'doughnut',
+        data: severityData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('triageChart'), {
+        type: 'pie',
+        data: triageData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    // File upload handler
+    document.getElementById('scanFile').addEventListener('change', handleFileUpload);
+    document.getElementById('scanFileEmpty').addEventListener('change', handleFileUpload);
+
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/api/scan/file', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(err => alert('Upload failed: ' + err));
+        }
+    }
+
+    function clearScan() {
+        if (confirm('Clear current scan results?')) {
+            fetch('/api/scan/clear', { method: 'POST' })
+                .then(res => res.json())
+                .then(() => location.reload());
+        }
+    }
+    {% endif %}
+</script>
+{% endblock %}

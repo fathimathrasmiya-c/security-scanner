@@ -1,0 +1,240 @@
+# Custom Semgrep rules for OWASP Top 10 + Secrets detection
+# These rules supplement Semgrep's built-in auto rules
+
+rules:
+  # =====================================================
+  # OWASP A01:2021 - Broken Access Control
+  # =====================================================
+  - id: hardcoded-admin-check
+    patterns:
+      - pattern: |
+          if $USER == "admin":
+              ...
+    message: "Hardcoded admin check detected. Use proper RBAC instead of string comparison."
+    languages: [python]
+    severity: WARNING
+    metadata:
+      owasp: "A01:2021 - Broken Access Control"
+      cwe: "CWE-284: Improper Access Control"
+
+  # =====================================================
+  # OWASP A02:2021 - Cryptographic Failures
+  # =====================================================
+  - id: weak-hash-md5
+    patterns:
+      - pattern: hashlib.md5(...)
+    message: "MD5 is cryptographically weak. Use SHA-256 or bcrypt for password hashing."
+    languages: [python]
+    severity: ERROR
+    metadata:
+      owasp: "A02:2021 - Cryptographic Failures"
+      cwe: "CWE-328: Reversible One-Way Hash"
+
+  - id: weak-hash-sha1
+    patterns:
+      - pattern: hashlib.sha1(...)
+    message: "SHA1 is cryptographically weak. Use SHA-256 or bcrypt for password hashing."
+    languages: [python]
+    severity: ERROR
+    metadata:
+      owasp: "A02:2021 - Cryptographic Failures"
+      cwe: "CWE-328: Reversible One-Way Hash"
+
+  # =====================================================
+  # OWASP A03:2021 - Injection (SQL Injection)
+  # =====================================================
+  - id: python-sql-injection-fstring
+    patterns:
+      - pattern: $DB.execute(f"...{$VAR}...")
+      - pattern-inside: |
+          import sqlite3
+          ...
+    message: "Potential SQL injection using f-string in query. Use parameterized queries."
+    languages: [python]
+    severity: ERROR
+    metadata:
+      owasp: "A03:2021 - Injection"
+      cwe: "CWE-89: SQL Injection"
+
+  - id: python-sql-injection-format
+    patterns:
+      - pattern: $DB.execute("...{}...".format($VAR))
+    message: "Potential SQL injection using .format() in query. Use parameterized queries."
+    languages: [python]
+    severity: ERROR
+    metadata:
+      owasp: "A03:2021 - Injection"
+      cwe: "CWE-89: SQL Injection"
+
+  - id: python-sql-injection-percent
+    patterns:
+      - pattern: $DB.execute("...%s..." % $VAR)
+    message: "Potential SQL injection using % formatting in query. Use parameterized queries."
+    languages: [python]
+    severity: ERROR
+    metadata:
+      owasp: "A03:2021 - Injection"
+      cwe: "CWE-89: SQL Injection"
+
+  # =====================================================
+  # OWASP A05:2021 - Security Misconfiguration
+  # =====================================================
+  - id: debug-true-in-production
+    patterns:
+      - pattern: DEBUG = True
+    message: "DEBUG mode enabled. This should never be True in production."
+    languages: [python]
+    severity: WARNING
+    metadata:
+      owasp: "A05:2021 - Security Misconfiguration"
+      cwe: "CWE-11: Presence of Debug Code"
+
+  - id: cors-wildcard
+    patterns:
+      - pattern: |
+          CORS($APP, resources={r"/*": {"origins": "*"}})
+    message: "CORS configured with wildcard origin. Restrict to specific domains."
+    languages: [python]
+    severity: WARNING
+    metadata:
+      owasp: "A05:2021 - Security Misconfiguration"
+      cwe: "CWE-284: Improper Access Control"
+
+  # =====================================================
+  # OWASP A06:2021 - Vulnerable and Outdated Components
+  # (Detected via dependency scanning - handled separately)
+  # =====================================================
+
+  # =====================================================
+  # OWASP A07:2021 - Identification and Authentication Failures
+  # =====================================================
+  - id: hardcoded-password
+    patterns:
+      - pattern: $VAR = "password123"
+      - pattern-inside: |
+          $PASSWORD = ...
+    message: "Hardcoded password detected. Use environment variables or a secrets manager."
+    languages: [python]
+    severity: ERROR
+    metadata:
+      owasp: "A07:2021 - Identification and Authentication Failures"
+      cwe: "CWE-259: Use of Hard-coded Password"
+
+  - id: weak-password-validation
+    patterns:
+      - pattern: |
+          if len($PWD) < 8:
+              ...
+    message: "Weak password policy. Enforce minimum 12 characters with complexity requirements."
+    languages: [python]
+    severity: WARNING
+    metadata:
+      owasp: "A07:2021 - Identification and Authentication Failures"
+      cwe: "CWE-521: Weak Password Requirements"
+
+  # =====================================================
+  # OWASP A08:2021 - Software and Data Integrity Failures
+  # =====================================================
+  - id: insecure-deserialize-pickle
+    patterns:
+      - pattern: pickle.loads($DATA)
+    message: "Insecure deserialization with pickle. Never unpickle untrusted data."
+    languages: [python]
+    severity: ERROR
+    metadata:
+      owasp: "A08:2021 - Software and Data Integrity Failures"
+      cwe: "CWE-502: Deserialization of Untrusted Data"
+
+  - id: insecure-deserialize-yaml
+    patterns:
+      - pattern: yaml.load($DATA, ...)
+      - pattern-not: yaml.load($DATA, Loader=yaml.SafeLoader)
+    message: "Insecure YAML deserialization. Use yaml.SafeLoader."
+    languages: [python]
+    severity: ERROR
+    metadata:
+      owasp: "A08:2021 - Software and Data Integrity Failures"
+      cwe: "CWE-502: Deserialization of Untrusted Data"
+
+  # =====================================================
+  # OWASP A09:2021 - Security Logging and Monitoring Failures
+  # =====================================================
+  - id: password-in-exception
+    patterns:
+      - pattern: raise Exception(..., $PASSWORD, ...)
+    message: "Password may be logged in exception. Never log sensitive data."
+    languages: [python]
+    severity: WARNING
+    metadata:
+      owasp: "A09:2021 - Security Logging and Monitoring Failures"
+      cwe: "CWE-532: Insertion of Sensitive Information into Log File"
+
+  # =====================================================
+  # Secrets Detection
+  # =====================================================
+  - id: aws-access-key
+    patterns:
+      - pattern: $VAR = "AKIA..."
+    message: "AWS Access Key ID detected. Use environment variables or AWS Secrets Manager."
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: "secrets"
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+
+  - id: aws-secret-key
+    patterns:
+      - pattern: $VAR = "..."
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: (?i).*secret.*
+    message: "Potential AWS Secret Key or API secret. Use environment variables."
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: "secrets"
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+
+  - id: generic-api-key
+    patterns:
+      - pattern: |
+          $VAR = "..."
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: (?i).*(api[_-]?key|apikey|auth[_-]?token|access[_-]?token).*
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: .{20,}
+    message: "Generic API key or token detected. Use environment variables."
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: "secrets"
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+
+  - id: private-key-inline
+    patterns:
+      - pattern: |
+          $VAR = "-----BEGIN RSA PRIVATE KEY-----..."
+    message: "Private key embedded in code. Use a secrets manager."
+    languages: [python]
+    severity: CRITICAL
+    metadata:
+      category: "secrets"
+      cwe: "CWE-321: Use of Hard-coded Cryptographic Key"
+
+  # =====================================================
+  # OWASP A010:2021 - Server-Side Request Forgery (SSRF)
+  # =====================================================
+  - id: ssrf-requests
+    patterns:
+      - pattern: requests.get($URL)
+      - metavariable-regex:
+          metavariable: $URL
+          regex: ^request|user_input
+    message: "Potential SSRF - user-controlled URL in request. Validate and whitelist URLs."
+    languages: [python]
+    severity: ERROR
+    metadata:
+      owasp: "A010:2021 - Server-Side Request Forgery"
+      cwe: "CWE-918: Server-Side Request Forgery"

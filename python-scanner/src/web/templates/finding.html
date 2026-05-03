@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Finding #{{ index + 1 }} - {{ finding.finding.rule_id }}{% endblock %}
+
+{% block content %}
+<div class="finding-detail">
+    <!-- Navigation -->
+    <div class="finding-nav">
+        <a href="/" class="btn btn-outline">&larr; Back to Dashboard</a>
+        <div class="finding-nav-actions">
+            {% if index > 0 %}
+            <a href="/findings/{{ index - 1 }}" class="btn btn-outline">&larr; Previous</a>
+            {% endif %}
+            {% if index < total - 1 %}
+            <a href="/findings/{{ index + 1 }}" class="btn btn-outline">Next &rarr;</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Finding Header -->
+    <div class="finding-header severity-{{ finding.finding.severity | lower }}">
+        <div class="finding-title">
+            <span class="severity-badge severity-{{ finding.finding.severity | lower }}">
+                {{ finding.finding.severity }}
+            </span>
+            <h1>{{ finding.finding.rule_id }}</h1>
+        </div>
+        <span class="finding-number">#{{ index + 1 }} of {{ total }}</span>
+    </div>
+
+    <!-- Finding Info Grid -->
+    <div class="info-grid">
+        <div class="info-item">
+            <label>Message</label>
+            <p>{{ finding.finding.message }}</p>
+        </div>
+        <div class="info-item">
+            <label>File</label>
+            <p><code>{{ finding.finding.file }}</code></p>
+        </div>
+        <div class="info-item">
+            <label>Line</label>
+            <p>{{ finding.finding.line }}</p>
+        </div>
+        <div class="info-item">
+            <label>OWASP Category</label>
+            <p>{{ finding.finding.metadata.get('owasp', 'N/A') if finding.finding.metadata else 'N/A' }}</p>
+        </div>
+    </div>
+
+    <!-- Triage Section -->
+    {% if finding.triage %}
+    <div class="triage-section">
+        <h2>
+            <span class="triage-icon">
+                {% if finding.triage.decision.value == 'true_positive' %}🔴{% elif finding.triage.decision.value == 'false_positive' %}🟢{% else %}🟡{% endif %}
+            </span>
+            AI Triage Result
+        </h2>
+
+        <div class="triage-grid">
+            <div class="triage-card">
+                <label>Decision</label>
+                <span class="triage-decision {{ finding.triage.decision.value }}">
+                    {{ finding.triage.decision.value | replace('_', ' ') | title }}
+                </span>
+            </div>
+            <div class="triage-card">
+                <label>Confidence</label>
+                <span class="confidence-badge confidence-{{ finding.triage.confidence }}">
+                    {{ finding.triage.confidence | title }}
+                </span>
+            </div>
+        </div>
+
+        <div class="triage-details">
+            <div class="detail-block">
+                <h3>Explanation</h3>
+                <p>{{ finding.triage.explanation }}</p>
+            </div>
+
+            {% if finding.triage.exploit_scenario and finding.triage.exploit_scenario != 'N/A' %}
+            <div class="detail-block exploit">
+                <h3>⚠️ Exploit Scenario</h3>
+                <p>{{ finding.triage.exploit_scenario }}</p>
+            </div>
+            {% endif %}
+
+            {% if finding.triage.recommended_action %}
+            <div class="detail-block remediation">
+                <h3>✅ Recommended Action</h3>
+                <p>{{ finding.triage.recommended_action }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Code Section -->
+    <div class="code-section">
+        <h2>Vulnerable Code</h2>
+        <pre class="code-block"><code>{{ finding.finding.code_snippet }}</code></pre>
+    </div>
+
+    <!-- Fix Section -->
+    {% if finding.fix %}
+    <div class="fix-section">
+        <h2>🔧 Suggested Fix</h2>
+
+        <div class="fix-explanation">
+            <p>{{ finding.fix.explanation }}</p>
+        </div>
+
+        <div class="code-compare">
+            <div class="code-panel">
+                <h4>Before (Vulnerable)</h4>
+                <pre class="code-block vulnerable"><code>{{ finding.fix.original_code }}</code></pre>
+            </div>
+            <div class="code-panel">
+                <h4>After (Fixed)</h4>
+                <pre class="code-block fixed"><code>{{ finding.fix.fixed_code }}</code></pre>
+            </div>
+        </div>
+
+        <div class="fix-summary">
+            <p><strong>Summary:</strong> {{ finding.fix.diff_summary }}</p>
+            <p><strong>Confidence:</strong>
+                <span class="confidence-badge confidence-{{ finding.fix.confidence }}">
+                    {{ finding.fix.confidence | title }}
+                </span>
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    <div class="finding-actions">
+        <button class="btn btn-primary" onclick="copyFinding()">Copy Finding Details</button>
+        <a href="/export/json" class="btn btn-outline">Export JSON</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function copyFinding() {
+        const text = `
+Finding: {{ finding.finding.rule_id }}
+Severity: {{ finding.finding.severity }}
+File: {{ finding.finding.file }}:{{ finding.finding.line }}
+Message: {{ finding.finding.message }}
+{% if finding.triage %}
+Triage: {{ finding.triage.decision.value }} ({{ finding.triage.confidence }} confidence)
+Explanation: {{ finding.triage.explanation }}
+{% endif %}
+        `.trim();
+
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Finding details copied to clipboard!');
+        });
+    }
+</script>
+{% endblock %}
