@@ -38,7 +38,11 @@ class ApiService {
       var response = await request.send();
 
       if (response.statusCode == 200) {
-        return getCurrentScan() as Future<ScanResult>;
+        final result = await getCurrentScan();
+        if (result == null) {
+          throw Exception('Upload succeeded but failed to fetch scan results');
+        }
+        return result;
       } else {
         throw Exception('Upload failed: ${response.reasonPhrase}');
       }
@@ -62,7 +66,11 @@ class ApiService {
       var response = await request.send();
 
       if (response.statusCode == 200) {
-        return getCurrentScan() as Future<ScanResult>;
+        final result = await getCurrentScan();
+        if (result == null) {
+          throw Exception('Upload succeeded but failed to fetch scan results');
+        }
+        return result;
       } else {
         throw Exception('Upload failed: ${response.reasonPhrase}');
       }

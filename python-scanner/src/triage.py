@@ -139,12 +139,11 @@ REMEDIATION: Specific fix recommendation
 
         decision = TriageDecision.NEEDS_REVIEW
         confidence = "medium"
-        explanation = ""
-        exploit_scenario = None
-        recommended_action = None
+        explanation_lines = []
+        exploit_lines = []
+        remediation_lines = []
 
-        current_section = None
-        current_content = []
+        current_section = "explanation"  # Default section
 
         for line in lines:
             line_stripped = line.strip()
@@ -163,19 +162,30 @@ REMEDIATION: Specific fix recommendation
                 )
             elif line_stripped.startswith("EXPLANATION:"):
                 current_section = "explanation"
-                explanation = line_stripped.replace("EXPLANATION:", "").strip()
+                content = line_stripped.replace("EXPLANATION:", "").strip()
+                if content:
+                    explanation_lines.append(content)
             elif line_stripped.startswith("EXPLOIT:"):
                 current_section = "exploit"
-                exploit_scenario = line_stripped.replace("EXPLOIT:", "").strip()
+                content = line_stripped.replace("EXPLOIT:", "").strip()
+                if content:
+                    exploit_lines.append(content)
             elif line_stripped.startswith("REMEDIATION:"):
                 current_section = "remediation"
-                recommended_action = line_stripped.replace("REMEDIATION:", "").strip()
-            elif current_section == "explanation" and line_stripped:
-                explanation += " " + line_stripped
-            elif current_section == "exploit" and line_stripped:
-                exploit_scenario += " " + line_stripped
-            elif current_section == "remediation" and line_stripped:
-                recommended_action += " " + line_stripped
+                content = line_stripped.replace("REMEDIATION:", "").strip()
+                if content:
+                    remediation_lines.append(content)
+            elif line:  # Use original line to preserve leading whitespace if needed
+                if current_section == "explanation":
+                    explanation_lines.append(line)
+                elif current_section == "exploit":
+                    exploit_lines.append(line)
+                elif current_section == "remediation":
+                    remediation_lines.append(line)
+
+        explanation = "\n".join(explanation_lines).strip()
+        exploit_scenario = "\n".join(exploit_lines).strip() or None
+        recommended_action = "\n".join(remediation_lines).strip() or None
 
         # If we didn't get a clear decision, use the explanation to infer
         if decision == TriageDecision.NEEDS_REVIEW:

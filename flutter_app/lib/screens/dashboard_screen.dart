@@ -133,11 +133,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    context.read<ApiService>().dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {

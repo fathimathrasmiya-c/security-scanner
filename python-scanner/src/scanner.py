@@ -197,7 +197,7 @@ class SemgrepScanner:
             return {"before": before, "after": after, "full": full}
 
         except (FileNotFoundError, IOError):
-            return {"before": "", "after": "", "full": finding.code_snippet}
+            return {"before": "", "after": "", "full": ""}
 
 
 @dataclass

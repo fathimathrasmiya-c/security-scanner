@@ -118,7 +118,7 @@ function App() {
         const severity = f.severity?.toLowerCase()
         if (severityFilter === 'high') return severity === 'critical' || severity === 'error'
         if (severityFilter === 'medium') return severity === 'warning'
-        if (severityFilter === 'low') return severity === 'info'
+        if (severityFilter === 'low') return severity !== 'critical' && severity !== 'error' && severity !== 'warning'
         return true
       })
     }
