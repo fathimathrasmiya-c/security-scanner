@@ -175,7 +175,7 @@ REMEDIATION: Specific fix recommendation
                 content = line_stripped.replace("REMEDIATION:", "").strip()
                 if content:
                     remediation_lines.append(content)
-            elif line:  # Use original line to preserve leading whitespace if needed
+            else:  # Preserve empty lines as well
                 if current_section == "explanation":
                     explanation_lines.append(line)
                 elif current_section == "exploit":
@@ -192,9 +192,9 @@ REMEDIATION: Specific fix recommendation
             expl_lower = explanation.lower()
             # Check for negative qualifiers first
             is_fp_hint = "false positive" in expl_lower or "not a vulnerability" in expl_lower or "not vulnerable" in expl_lower
-            is_tp_hint = "vulnerability" in expl_lower or "exploit" in expl_lower
+            is_tp_hint = "vulnerability" in expl_lower or "exploit" in expl_lower or "true positive" in expl_lower
 
-            if is_fp_hint and not ("not a false positive" in expl_lower):
+            if is_fp_hint and not ("not a false positive" in expl_lower) and not ("true positive" in expl_lower):
                 decision = TriageDecision.FALSE_POSITIVE
             elif is_tp_hint:
                 decision = TriageDecision.TRUE_POSITIVE

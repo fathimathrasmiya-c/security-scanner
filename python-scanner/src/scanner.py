@@ -193,7 +193,7 @@ class SemgrepScanner:
                 lines = f.readlines()
 
             if line_number <= 0:
-                return {"before": "", "after": "", "full": "".join(lines[:context_lines])}
+                return {"before": "", "after": "".join(lines[:context_lines]), "full": "".join(lines[:context_lines])}
 
             start_idx = max(0, line_number - context_lines - 1)
             # end_line might be the same as line_number or larger

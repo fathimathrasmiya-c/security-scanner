@@ -58,6 +58,7 @@ class ReportedFinding:
             "message": self.finding.message,
             "file": self.finding.file,
             "line": self.finding.line,
+            "end_line": self.finding.end_line,
             "column": self.finding.column,
             "severity": self.finding.severity,
             "code_snippet": self.finding.code_snippet,

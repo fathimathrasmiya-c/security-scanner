@@ -67,6 +67,7 @@ class Finding {
   final String message;
   final String file;
   final int line;
+  final int endLine;
   final int column;
   final String severity;
   final String codeSnippet;
@@ -79,6 +80,7 @@ class Finding {
     required this.message,
     required this.file,
     required this.line,
+    this.endLine = 0,
     this.column = 0,
     required this.severity,
     this.codeSnippet = '',
@@ -93,6 +95,7 @@ class Finding {
       message: json['message'] ?? '',
       file: json['file'] ?? '',
       line: json['line'] ?? 0,
+      endLine: json['end_line'] ?? 0,
       column: json['column'] ?? 0,
       severity: json['severity'] ?? 'WARNING',
       codeSnippet: json['code_snippet'] ?? '',
@@ -107,6 +110,7 @@ class Finding {
         'message': message,
         'file': file,
         'line': line,
+        'end_line': endLine,
         'column': column,
         'severity': severity,
         'code_snippet': codeSnippet,
