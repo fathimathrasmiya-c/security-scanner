@@ -562,9 +562,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => FindingDetailScreen(
-                        finding: finding,
-                        index: index,
-                        total: _scanResult!.findings.length,
+                        findings: _scanResult!.findings,
+                        initialIndex: index,
                       ),
                     ),
                   );

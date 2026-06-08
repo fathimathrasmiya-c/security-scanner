@@ -175,8 +175,10 @@ def create_dashboard(static_folder: str = "static", template_folder: str = "temp
                 message=f.get("message", ""),
                 file=f.get("file", ""),
                 line=f.get("line", 0),
+                column=f.get("column", 0),
                 severity=f.get("severity", "WARNING"),
                 code_snippet=f.get("code_snippet", ""),
+                metadata=f.get("metadata", {}),
             )
 
             triage = None

@@ -67,8 +67,10 @@ class Finding {
   final String message;
   final String file;
   final int line;
+  final int column;
   final String severity;
   final String codeSnippet;
+  final Map<String, dynamic> metadata;
   final Triage? triage;
   final Fix? fix;
 
@@ -77,8 +79,10 @@ class Finding {
     required this.message,
     required this.file,
     required this.line,
+    this.column = 0,
     required this.severity,
     this.codeSnippet = '',
+    this.metadata = const {},
     this.triage,
     this.fix,
   });
@@ -89,8 +93,10 @@ class Finding {
       message: json['message'] ?? '',
       file: json['file'] ?? '',
       line: json['line'] ?? 0,
+      column: json['column'] ?? 0,
       severity: json['severity'] ?? 'WARNING',
       codeSnippet: json['code_snippet'] ?? '',
+      metadata: json['metadata'] ?? {},
       triage: json['triage'] != null ? Triage.fromJson(json['triage']) : null,
       fix: json['fix'] != null ? Fix.fromJson(json['fix']) : null,
     );
@@ -101,8 +107,10 @@ class Finding {
         'message': message,
         'file': file,
         'line': line,
+        'column': column,
         'severity': severity,
         'code_snippet': codeSnippet,
+        'metadata': metadata,
         'triage': triage?.toJson(),
         'fix': fix?.toJson(),
       };
