@@ -62,12 +62,15 @@ function App() {
     reader.onload = (e) => {
       try {
         const data = JSON.parse(e.target.result)
+        if (!data || (typeof data !== 'object')) {
+          throw new Error('JSON is not an object');
+        }
         console.log('Uploaded JSON:', data)
         setScanData(data)
         localStorage.setItem('scanData', JSON.stringify(data))
-      } catch (error) {
-        alert('Invalid JSON file!')
-        console.error(error)
+      } catch (err) {
+        alert(`Failed to parse scan results: ${err.message}`)
+        console.error('JSON Parse Error:', err)
       }
       
       // Reset the input value so the onChange event triggers again even for the same file

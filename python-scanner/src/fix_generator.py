@@ -22,11 +22,20 @@ class FixProposal:
 
     def to_unified_diff(self, filename: str, line_number: int) -> str:
         """Generate a unified diff format."""
+        orig_lines = self.original_code.splitlines()
+        fixed_lines = self.fixed_code.splitlines()
+
+        orig_count = len(orig_lines)
+        fixed_count = len(fixed_lines)
+
+        orig_formatted = "\n".join([f"-{line}" for line in orig_lines])
+        fixed_formatted = "\n".join([f"+{line}" for line in fixed_lines])
+
         return f"""--- a/{filename}
 +++ b/{filename}
-@@ -{line_number},1 +{line_number},1 @@
--{self.original_code}
-+{self.fixed_code}
+@@ -{line_number},{orig_count} +{line_number},{fixed_count} @@
+{orig_formatted}
+{fixed_formatted}
 
 {self.diff_summary}
 """

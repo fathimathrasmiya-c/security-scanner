@@ -23,6 +23,7 @@ class Finding:
     message: str
     file: str
     line: int
+    end_line: int = 0
     column: int = 0
     severity: str = "WARNING"
     code_snippet: str = ""
@@ -39,6 +40,7 @@ class Finding:
             message=extra.get("message", "Security issue detected"),
             file=cls._normalize_path(result.get("path", ""), base_path),
             line=extra.get("start", {}).get("line", 0),
+            end_line=extra.get("end", {}).get("line", 0),
             column=extra.get("start", {}).get("col", 0),
             severity=extra.get("severity", "WARNING"),
             code_snippet=extra.get("lines", ""),
@@ -162,7 +164,7 @@ class SemgrepScanner:
 
         for finding in findings:
             context = self._extract_context(
-                finding.file, finding.line, context_lines
+                finding.file, finding.line, finding.end_line, context_lines
             )
             results.append(
                 FindingWithContext(
@@ -176,7 +178,7 @@ class SemgrepScanner:
         return results
 
     def _extract_context(
-        self, file_path: str, line_number: int, context_lines: int
+        self, file_path: str, line_number: int, end_line: int, context_lines: int
     ) -> dict[str, str]:
         """Extract code context around a specific line."""
         try:
@@ -184,14 +186,22 @@ class SemgrepScanner:
             if not Path(file_path).is_absolute() and self.base_path:
                 file_path = Path(self.base_path) / file_path
 
+            if not Path(file_path).exists():
+                return {"before": "", "after": "", "full": ""}
+
             with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
                 lines = f.readlines()
 
+            if line_number <= 0:
+                return {"before": "", "after": "", "full": "".join(lines[:context_lines])}
+
             start_idx = max(0, line_number - context_lines - 1)
-            end_idx = min(len(lines), line_number + context_lines)
+            # end_line might be the same as line_number or larger
+            end_idx = min(len(lines), (end_line or line_number) + context_lines)
 
             before = "".join(lines[start_idx : line_number - 1])
-            after = "".join(lines[line_number:end_idx])
+            # after should start from end_line
+            after = "".join(lines[end_line or line_number : end_idx])
             full = "".join(lines[start_idx:end_idx])
 
             return {"before": before, "after": after, "full": full}

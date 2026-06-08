@@ -9,6 +9,7 @@ from typing import Optional
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.table import Table
+from rich.markup import escape
 
 from .fix_generator import FixProposal
 from .scanner import Finding
@@ -191,10 +192,10 @@ class Reporter:
         }.get(finding.severity.upper(), "white")
 
         self.console.print(
-            f"[bold {severity_color}]#{index} [{finding.severity}] {finding.rule_id}[/bold {severity_color}]"
+            f"[bold {severity_color}]#{index} [{finding.severity}] {escape(finding.rule_id)}[/bold {severity_color}]"
         )
-        self.console.print(f"  [dim]File:[/dim] {finding.file}:{finding.line}")
-        self.console.print(f"  [dim]Message:[/dim] {finding.message}\n")
+        self.console.print(f"  [dim]File:[/dim] {escape(finding.file)}:{finding.line}")
+        self.console.print(f"  [dim]Message:[/dim] {escape(finding.message)}\n")
 
         if triage:
             decision_emoji = {
@@ -206,20 +207,20 @@ class Reporter:
             self.console.print(
                 f"  [{decision_emoji}] [bold]Triage:[/bold] {triage.decision.value.replace('_', ' ').title()}"
             )
-            self.console.print(f"  [dim]Confidence:[/dim] {triage.confidence}")
-            self.console.print(f"  [dim]Explanation:[/dim] {triage.explanation}\n")
+            self.console.print(f"  [dim]Confidence:[/dim] {escape(triage.confidence)}")
+            self.console.print(f"  [dim]Explanation:[/dim] {escape(triage.explanation)}\n")
 
             if triage.exploit_scenario and triage.exploit_scenario != "N/A":
                 self.console.print(
-                    f"  [bold red]Exploit:[/bold red] {triage.exploit_scenario}\n"
+                    f"  [bold red]Exploit:[/bold red] {escape(triage.exploit_scenario)}\n"
                 )
 
             if reported.fix:
                 self.console.print(
-                    f"  [bold green]Fix:[/bold green] {reported.fix.diff_summary}"
+                    f"  [bold green]Fix:[/bold green] {escape(reported.fix.diff_summary)}"
                 )
                 self.console.print(
-                    f"  [dim]{reported.fix.fixed_code[:200]}...[/dim]\n"
+                    f"  [dim]{escape(reported.fix.fixed_code[:200])}...[/dim]\n"
                 )
 
         self.console.print("[dim]" + "-" * 40 + "[/dim]\n")

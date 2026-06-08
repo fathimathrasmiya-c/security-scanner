@@ -156,7 +156,9 @@ def create_dashboard(static_folder: str = "static", template_folder: str = "temp
             return jsonify({"error": "No scan results loaded"}), 404
 
         if format == "json":
-            return jsonify(scan_results.to_dict())
+            response = jsonify(scan_results.to_dict())
+            response.headers["Content-Disposition"] = "attachment; filename=report.json"
+            return response
 
         return jsonify({"error": "Unsupported format"}), 400
 

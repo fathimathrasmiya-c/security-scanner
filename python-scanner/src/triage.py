@@ -189,9 +189,14 @@ REMEDIATION: Specific fix recommendation
 
         # If we didn't get a clear decision, use the explanation to infer
         if decision == TriageDecision.NEEDS_REVIEW:
-            if "false positive" in explanation.lower() or "not a vulnerability" in explanation.lower():
+            expl_lower = explanation.lower()
+            # Check for negative qualifiers first
+            is_fp_hint = "false positive" in expl_lower or "not a vulnerability" in expl_lower or "not vulnerable" in expl_lower
+            is_tp_hint = "vulnerability" in expl_lower or "exploit" in expl_lower
+
+            if is_fp_hint and not ("not a false positive" in expl_lower):
                 decision = TriageDecision.FALSE_POSITIVE
-            elif "vulnerability" in explanation.lower() or "exploit" in explanation.lower():
+            elif is_tp_hint:
                 decision = TriageDecision.TRUE_POSITIVE
 
         return TriageResult(

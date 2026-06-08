@@ -9,8 +9,9 @@ class ApiService {
   final String baseUrl;
   final http.Client _client;
 
-  ApiService({this.baseUrl = 'http://127.0.0.1:5000'})
-      : _client = http.Client();
+  ApiService({String baseUrl = 'http://127.0.0.1:5000'})
+      : baseUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl,
+        _client = http.Client();
 
   Future<ScanResult?> getCurrentScan() async {
     try {
