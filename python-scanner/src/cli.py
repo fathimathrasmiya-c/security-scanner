@@ -151,7 +151,24 @@ def scan(
 
         # Run scan with context
         console.print("[dim]Running Semgrep analysis...[/dim]")
-        findings_with_context = scanner.scan_with_context(target)
+        all_findings = scanner.scan_with_context(target)
+
+        # Filter by severity threshold
+        severity_order = {
+            "critical": 3,
+            "error": 2,
+            "high": 2,
+            "warning": 1,
+            "medium": 1,
+            "info": 0,
+            "low": 0
+        }
+        min_severity = severity_order.get(severity_threshold.lower(), 2)
+
+        findings_with_context = [
+            f for f in all_findings
+            if severity_order.get(f.finding.severity.lower(), 0) >= min_severity
+        ]
 
         if not findings_with_context:
             console.print("[green]No security issues found![/green]")
@@ -251,14 +268,23 @@ def _should_fail_build(report: ScanReport, fail_on: str) -> bool:
     if fail_on == "never":
         return False
 
-    severity_order = {"critical": 3, "high": 2, "medium": 1, "low": 0}
-    threshold = severity_order.get(fail_on, 2)
+    severity_order = {
+        "critical": 3,
+        "error": 2,
+        "high": 2,
+        "warning": 1,
+        "medium": 1,
+        "info": 0,
+        "low": 0
+    }
+    threshold = severity_order.get(fail_on.lower(), 2)
 
     for finding in report.findings:
         triage = finding.triage
         if not triage or not triage.is_confirmed_vulnerability():
             continue
 
+        # Semgrep often uses 'ERROR' for high and 'WARNING' for medium
         finding_severity = severity_order.get(finding.finding.severity.lower(), 0)
         if finding_severity >= threshold:
             return True

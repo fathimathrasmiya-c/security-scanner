@@ -156,7 +156,9 @@ def create_dashboard(static_folder: str = "static", template_folder: str = "temp
             return jsonify({"error": "No scan results loaded"}), 404
 
         if format == "json":
-            return jsonify(scan_results.to_dict())
+            response = jsonify(scan_results.to_dict())
+            response.headers["Content-Disposition"] = "attachment; filename=report.json"
+            return response
 
         return jsonify({"error": "Unsupported format"}), 400
 
@@ -175,8 +177,11 @@ def create_dashboard(static_folder: str = "static", template_folder: str = "temp
                 message=f.get("message", ""),
                 file=f.get("file", ""),
                 line=f.get("line", 0),
+                end_line=f.get("end_line", 0),
+                column=f.get("column", 0),
                 severity=f.get("severity", "WARNING"),
                 code_snippet=f.get("code_snippet", ""),
+                metadata=f.get("metadata", {}),
             )
 
             triage = None

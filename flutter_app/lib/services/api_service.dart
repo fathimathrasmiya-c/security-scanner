@@ -9,8 +9,9 @@ class ApiService {
   final String baseUrl;
   final http.Client _client;
 
-  ApiService({this.baseUrl = 'http://127.0.0.1:5000'})
-      : _client = http.Client();
+  ApiService({String baseUrl = 'http://127.0.0.1:5000'})
+      : baseUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl,
+        _client = http.Client();
 
   Future<ScanResult?> getCurrentScan() async {
     try {
@@ -38,7 +39,11 @@ class ApiService {
       var response = await request.send();
 
       if (response.statusCode == 200) {
-        return getCurrentScan() as Future<ScanResult>;
+        final result = await getCurrentScan();
+        if (result == null) {
+          throw Exception('Upload succeeded but failed to fetch scan results');
+        }
+        return result;
       } else {
         throw Exception('Upload failed: ${response.reasonPhrase}');
       }
@@ -62,7 +67,11 @@ class ApiService {
       var response = await request.send();
 
       if (response.statusCode == 200) {
-        return getCurrentScan() as Future<ScanResult>;
+        final result = await getCurrentScan();
+        if (result == null) {
+          throw Exception('Upload succeeded but failed to fetch scan results');
+        }
+        return result;
       } else {
         throw Exception('Upload failed: ${response.reasonPhrase}');
       }

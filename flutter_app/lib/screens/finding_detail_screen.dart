@@ -2,20 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/scan_result.dart';
 
-class FindingDetailScreen extends StatelessWidget {
-  final Finding finding;
-  final int index;
-  final int total;
+class FindingDetailScreen extends StatefulWidget {
+  final List<Finding> findings;
+  final int initialIndex;
 
   const FindingDetailScreen({
     super.key,
-    required this.finding,
-    required this.index,
-    required this.total,
+    required this.findings,
+    required this.initialIndex,
   });
 
+  @override
+  State<FindingDetailScreen> createState() => _FindingDetailScreenState();
+}
+
+class _FindingDetailScreenState extends State<FindingDetailScreen> {
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+  }
+
+  Finding get _currentFinding => widget.findings[_currentIndex];
+
   Color _getSeverityColor() {
-    switch (finding.severityLevel) {
+    switch (_currentFinding.severityLevel) {
       case SeverityLevel.high:
         return Colors.red;
       case SeverityLevel.medium:
@@ -25,11 +38,27 @@ class FindingDetailScreen extends StatelessWidget {
     }
   }
 
+  void _goToPrevious() {
+    if (_currentIndex > 0) {
+      setState(() {
+        _currentIndex--;
+      });
+    }
+  }
+
+  void _goToNext() {
+    if (_currentIndex < widget.findings.length - 1) {
+      setState(() {
+        _currentIndex++;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Finding #${index + 1}'),
+        title: Text('Finding #${_currentIndex + 1}'),
         backgroundColor: const Color(0xFF1E293B),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -39,18 +68,16 @@ class FindingDetailScreen extends StatelessWidget {
             onPressed: () => _copyToClipboard(context),
             tooltip: 'Copy Details',
           ),
-          if (index > 0)
-            IconButton(
-              icon: const Icon(Icons.chevron_left),
-              onPressed: () => Navigator.pop(context),
-              tooltip: 'Previous',
-            ),
-          if (index < total - 1)
-            IconButton(
-              icon: const Icon(Icons.chevron_right),
-              onPressed: () => Navigator.pop(context),
-              tooltip: 'Next',
-            ),
+          IconButton(
+            icon: const Icon(Icons.chevron_left),
+            onPressed: _currentIndex > 0 ? _goToPrevious : null,
+            tooltip: 'Previous',
+          ),
+          IconButton(
+            icon: const Icon(Icons.chevron_right),
+            onPressed: _currentIndex < widget.findings.length - 1 ? _goToNext : null,
+            tooltip: 'Next',
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -61,13 +88,13 @@ class FindingDetailScreen extends StatelessWidget {
             _buildHeader(context),
             const SizedBox(height: 16),
             _buildInfoGrid(context),
-            if (finding.triage != null) ...[
+            if (_currentFinding.triage != null) ...[
               const SizedBox(height: 16),
               _buildTriageSection(context),
             ],
             const SizedBox(height: 16),
             _buildCodeSection(context),
-            if (finding.fix != null) ...[
+            if (_currentFinding.fix != null) ...[
               const SizedBox(height: 16),
               _buildFixSection(context),
             ],
@@ -102,7 +129,7 @@ class FindingDetailScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  finding.severity.toUpperCase(),
+                  _currentFinding.severity.toUpperCase(),
                   style: TextStyle(
                     color: _getSeverityColor(),
                     fontWeight: FontWeight.bold,
@@ -113,7 +140,7 @@ class FindingDetailScreen extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  finding.ruleId,
+                  _currentFinding.ruleId,
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -125,7 +152,7 @@ class FindingDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            finding.message,
+            _currentFinding.message,
             style: const TextStyle(color: Colors.grey),
           ),
         ],
@@ -134,6 +161,10 @@ class FindingDetailScreen extends StatelessWidget {
   }
 
   Widget _buildInfoGrid(BuildContext context) {
+    final metadata = _currentFinding.metadata;
+    final owasp = metadata['owasp'] ?? 'N/A';
+    final cwe = metadata['cwe'] ?? 'N/A';
+
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -142,16 +173,10 @@ class FindingDetailScreen extends StatelessWidget {
       crossAxisSpacing: 12,
       childAspectRatio: 2,
       children: [
-        _buildInfoCard('File', finding.file),
-        _buildInfoCard('Line', '${finding.line}'),
-        _buildInfoCard(
-          'OWASP',
-          finding.ruleId.contains('sql') ? 'A03:2021 - Injection' : 'N/A',
-        ),
-        _buildInfoCard(
-          'Status',
-          finding.triage?.decision.replaceAll('_', ' ').toUpperCase() ?? 'PENDING',
-        ),
+        _buildInfoCard('File', _currentFinding.file),
+        _buildInfoCard('Line', '${_currentFinding.line}:${_currentFinding.column}'),
+        _buildInfoCard('OWASP', owasp),
+        _buildInfoCard('CWE', cwe),
       ],
     );
   }
@@ -186,7 +211,7 @@ class FindingDetailScreen extends StatelessWidget {
   }
 
   Widget _buildTriageSection(BuildContext context) {
-    final triage = finding.triage!;
+    final triage = _currentFinding.triage!;
 
     return Card(
       color: const Color(0xFF1E293B),
@@ -333,7 +358,7 @@ class FindingDetailScreen extends StatelessWidget {
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Text(
-                  finding.codeSnippet,
+                  _currentFinding.codeSnippet,
                   style: const TextStyle(
                     fontFamily: 'monospace',
                     color: Colors.red,
@@ -349,7 +374,7 @@ class FindingDetailScreen extends StatelessWidget {
   }
 
   Widget _buildFixSection(BuildContext context) {
-    final fix = finding.fix!;
+    final fix = _currentFinding.fix!;
 
     return Card(
       color: const Color(0xFF1E293B),
@@ -444,12 +469,12 @@ class FindingDetailScreen extends StatelessWidget {
 
   void _copyToClipboard(BuildContext context) {
     final text = '''
-Finding: ${finding.ruleId}
-Severity: ${finding.severity}
-File: ${finding.file}:${finding.line}
-Message: ${finding.message}
-${finding.triage != null ? 'Triage: ${finding.triage!.decision} (${finding.triage!.confidence})\nExplanation: ${finding.triage!.explanation}' : ''}
-''';
+Finding: ${_currentFinding.ruleId}
+Severity: ${_currentFinding.severity}
+File: ${_currentFinding.file}:${_currentFinding.line}:${_currentFinding.column}
+Message: ${_currentFinding.message}
+${_currentFinding.triage != null ? 'Triage: ${_currentFinding.triage!.decision} (${_currentFinding.triage!.confidence})\nExplanation: ${_currentFinding.triage!.explanation}' : ''}
+'''.trim();
 
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(

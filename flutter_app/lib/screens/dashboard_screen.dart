@@ -133,11 +133,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    context.read<ApiService>().dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -414,36 +409,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: PieChart(
                 PieChartData(
                   sections: [
-                    PieChartSectionData(
-                      value: severityCounts['high']?.toDouble() ?? 0,
-                      color: Colors.red,
-                      title: 'High\n${severityCounts['high']}',
-                      radius: 60,
-                      titleStyle: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                    if ((severityCounts['high'] ?? 0) > 0)
+                      PieChartSectionData(
+                        value: severityCounts['high']!.toDouble(),
+                        color: Colors.red,
+                        title: 'High\n${severityCounts['high']}',
+                        radius: 60,
+                        titleStyle: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    PieChartSectionData(
-                      value: severityCounts['medium']?.toDouble() ?? 0,
-                      color: Colors.orange,
-                      title: 'Medium\n${severityCounts['medium']}',
-                      radius: 60,
-                      titleStyle: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                    if ((severityCounts['medium'] ?? 0) > 0)
+                      PieChartSectionData(
+                        value: severityCounts['medium']!.toDouble(),
+                        color: Colors.orange,
+                        title: 'Medium\n${severityCounts['medium']}',
+                        radius: 60,
+                        titleStyle: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    PieChartSectionData(
-                      value: severityCounts['low']?.toDouble() ?? 0,
-                      color: Colors.green,
-                      title: 'Low\n${severityCounts['low']}',
-                      radius: 60,
-                      titleStyle: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                    if ((severityCounts['low'] ?? 0) > 0)
+                      PieChartSectionData(
+                        value: severityCounts['low']!.toDouble(),
+                        color: Colors.green,
+                        title: 'Low\n${severityCounts['low']}',
+                        radius: 60,
+                        titleStyle: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
                   ],
                   sectionsSpace: 2,
                   centerSpaceRadius: 40,
@@ -473,39 +471,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: PieChart(
                 PieChartData(
                   sections: [
-                    PieChartSectionData(
-                      value: _scanResult!.summary.confirmedVulnerabilities.toDouble(),
-                      color: Colors.red,
-                      title: 'True\nPositive',
-                      radius: 60,
-                      titleStyle: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10,
+                    if (_scanResult!.summary.confirmedVulnerabilities > 0)
+                      PieChartSectionData(
+                        value: _scanResult!.summary.confirmedVulnerabilities.toDouble(),
+                        color: Colors.red,
+                        title: 'True\nPositive',
+                        radius: 60,
+                        titleStyle: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        ),
                       ),
-                    ),
-                    PieChartSectionData(
-                      value: _scanResult!.summary.falsePositives.toDouble(),
-                      color: Colors.green,
-                      title: 'False\nPositive',
-                      radius: 60,
-                      titleStyle: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10,
+                    if (_scanResult!.summary.falsePositives > 0)
+                      PieChartSectionData(
+                        value: _scanResult!.summary.falsePositives.toDouble(),
+                        color: Colors.green,
+                        title: 'False\nPositive',
+                        radius: 60,
+                        titleStyle: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        ),
                       ),
-                    ),
-                    PieChartSectionData(
-                      value: _scanResult!.summary.needsReview.toDouble(),
-                      color: Colors.orange,
-                      title: 'Needs\nReview',
-                      radius: 60,
-                      titleStyle: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10,
+                    if (_scanResult!.summary.needsReview > 0)
+                      PieChartSectionData(
+                        value: _scanResult!.summary.needsReview.toDouble(),
+                        color: Colors.orange,
+                        title: 'Needs\nReview',
+                        radius: 60,
+                        titleStyle: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        ),
                       ),
-                    ),
                   ],
                   sectionsSpace: 2,
                   centerSpaceRadius: 40,
@@ -567,9 +568,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => FindingDetailScreen(
-                        finding: finding,
-                        index: index,
-                        total: _scanResult!.findings.length,
+                        findings: _scanResult!.findings,
+                        initialIndex: index,
                       ),
                     ),
                   );
